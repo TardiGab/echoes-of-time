@@ -60707,7 +60707,7 @@ class Viewer {
         const ambientLight = new AmbientLight('white', .1);
         this.scene.add(ambientLight);
 
-        const light = new SpotLight(0xffffff, 12, 100, Math.PI / 4, 0.3);
+        const light = new SpotLight(0xffffff, 10, 100, Math.PI / 8, 0.3, 1);
         light.position.set(0, 15, 0);
         this.scene.add(light);
 
