@@ -60679,7 +60679,6 @@ class Viewer {
     populate() {
 
         this.scene.add(...models.exterieur.scene.children);
-        // this.scene.add( ...models.ball.scene.children );
 
         // Rajoute chaque animation stockée dans les modèles
         // pour les mettre dans notre objet "this.scene"
@@ -60689,8 +60688,28 @@ class Viewer {
             }
         }
 
-        const ambientLight = new AmbientLight('white', 1);
+        // const lamp = this.scene.getObjectByName("Main_light.001")
+
+        // console.log(lamp)
+
+        // if (lamp) {
+        //     const spotLight = new THREE.SpotLight(0xffffff, 3, 50, Math.PI / 6, 0.35, 1);
+        //     lamp.getWorldPosition(spotLight.position);
+
+        //     const target = new THREE.Object3D();
+        //     target.position.set(0, 0, 0); // ajuste la cible selon l'endroit à éclairer
+        //     this.scene.add(target);
+
+        //     spotLight.target = target;
+        //     this.scene.add(spotLight);
+        // }
+
+        const ambientLight = new AmbientLight('white', .1);
         this.scene.add(ambientLight);
+
+        const light = new SpotLight(0xffffff, 12, 100, Math.PI / 4, 0.3);
+        light.position.set(0, 15, 0);
+        this.scene.add(light);
 
         for (const mesh of this.scene.children) {
             if (mesh.isMesh) {
