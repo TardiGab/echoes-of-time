@@ -60704,7 +60704,7 @@ class Viewer {
         //     this.scene.add(spotLight);
         // }
 
-        const ambientLight = new AmbientLight('white', .1);
+        const ambientLight = new AmbientLight('#9e9e9e', .2);
         this.scene.add(ambientLight);
 
         const light = new SpotLight(0xffffff, 10, 100, Math.PI / 8, 0.3, 1);
@@ -60750,7 +60750,7 @@ class Viewer {
             }
         }
 
-        console.log(this.scene.animations);
+        // console.log(this.scene.animations);
 
         // const ball = this.scene.getObjectByName( 'G0_DM_ball' );
         // const mixer = new THREE.AnimationMixer( ball );
@@ -60800,7 +60800,10 @@ class Viewer {
         );
 
         // Recule notre camera pour qu'on puisse voir le centre de la scene
-        this.camera.position.z = 10;
+        this.camera.position.x = 26;
+        this.camera.position.y = 5;
+        this.camera.position.z = 0;
+
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.addEventListener('change', () => {
@@ -60810,6 +60813,8 @@ class Viewer {
         // Crée notre scene et y rajoute notre camera
         this.scene = new Scene();
         this.scene.add(this.camera);
+        this.camera.lookAt(0, 5, 0);
+        this.controls.target.set(0, 5, 0);
 
         // Change une première fois la taille de notre canvas
         this.resize();
@@ -60849,4 +60854,11 @@ const myViewer = new Viewer(threejsOptions);
 // gère les changements de tailles
 window.addEventListener("resize", () => {
     myViewer.resize();
+});
+
+window.addEventListener("keydown", (event) => {
+
+    if (event.key === "F" || event.key === "f") {
+        console.log(myViewer.camera.position.x, myViewer.camera.position.y, myViewer.camera.position.z);
+    }
 });
