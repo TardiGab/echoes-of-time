@@ -191,8 +191,8 @@ class Viewer {
         this.controls.maxDistance = 26
         this.controls.minPolarAngle = Math.PI / 3;
         this.controls.maxPolarAngle = Math.PI / 2;
-        // this.controls.minAzimuthAngle = Math.PI / 6; // -45°
-        // this.controls.maxAzimuthAngle = -Math.PI / 6;  // +45°
+        this.controls.minAzimuthAngle = 1;
+        this.controls.maxAzimuthAngle = 2;
 
         // Crée notre scene et y rajoute notre camera
         this.scene = new THREE.Scene();
