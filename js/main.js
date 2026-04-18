@@ -60677,7 +60677,6 @@ class Viewer {
     }
 
     populate() {
-
         this.scene.add(...models.exterieur.scene.children);
 
         // Rajoute chaque animation stockée dans les modèles
@@ -60687,22 +60686,6 @@ class Viewer {
                 this.scene.animations.push(animation);
             }
         }
-
-        // const lamp = this.scene.getObjectByName("Main_light.001")
-
-        // console.log(lamp)
-
-        // if (lamp) {
-        //     const spotLight = new THREE.SpotLight(0xffffff, 3, 50, Math.PI / 6, 0.35, 1);
-        //     lamp.getWorldPosition(spotLight.position);
-
-        //     const target = new THREE.Object3D();
-        //     target.position.set(0, 0, 0); // ajuste la cible selon l'endroit à éclairer
-        //     this.scene.add(target);
-
-        //     spotLight.target = target;
-        //     this.scene.add(spotLight);
-        // }
 
         const ambientLight = new AmbientLight('#9e9e9e', .2);
         this.scene.add(ambientLight);
@@ -60809,6 +60792,12 @@ class Viewer {
         this.controls.addEventListener('change', () => {
             this.render();
         });
+        this.controls.minDistance = 10;
+        this.controls.maxDistance = 26;
+        this.controls.minPolarAngle = Math.PI / 3;
+        this.controls.maxPolarAngle = Math.PI / 2;
+        // this.controls.minAzimuthAngle = Math.PI / 6; // -45°
+        // this.controls.maxAzimuthAngle = -Math.PI / 6;  // +45°
 
         // Crée notre scene et y rajoute notre camera
         this.scene = new Scene();
@@ -60833,7 +60822,7 @@ class Viewer {
         // à plus haute densité de pixel.
         settings.sizes.dpr = Math.min(window.devicePixelRatio, 2);
 
-        settings.canvas.style.aspetRatio = `${settings.sizes.w}/${settings.sizes.h}`;
+        settings.canvas.style.aspectRatio = `${settings.sizes.w}/${settings.sizes.h}`;
 
         // Mettre à jour la camera
         this.camera.aspect = settings.sizes.w / settings.sizes.h;
