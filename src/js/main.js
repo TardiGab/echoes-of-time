@@ -196,7 +196,7 @@ class Viewer {
 
         // Recule notre camera pour qu'on puisse voir le centre de la scene
         this.camera.position.x = 26;
-        this.camera.position.y = 5;
+        this.camera.position.y = 7;
         this.camera.position.z = 0;
 
 
@@ -208,8 +208,8 @@ class Viewer {
         // Crée notre scene et y rajoute notre camera
         this.scene = new THREE.Scene();
         this.scene.add(this.camera);
-        this.camera.lookAt(0, 5, 0)
-        this.controls.target.set(0, 5, 0)
+        this.camera.lookAt(0, 7, 0)
+        this.controls.target.set(0, 7, 0)
 
         // Change une première fois la taille de notre canvas
         this.resize();
