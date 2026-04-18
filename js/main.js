@@ -60785,7 +60785,7 @@ class Viewer {
         // Recule notre camera pour qu'on puisse voir le centre de la scene
         this.camera.position.x = 26;
         this.camera.position.y = 7;
-        this.camera.position.z = 0;
+        this.camera.position.z = -2;
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
