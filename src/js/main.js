@@ -64,6 +64,9 @@ class Viewer {
 
         // console.log(timestamp);
         // this.mixer.update(deltaTime);
+        if (this.spotLightHelper) {
+            this.spotLightHelper.update();
+        }
         this.render();
 
         window.requestAnimationFrame((timestamp) => {
@@ -85,9 +88,19 @@ class Viewer {
         const ambientLight = new THREE.AmbientLight('#9e9e9e', .2);
         this.scene.add(ambientLight);
 
-        const light = new THREE.SpotLight(0xffffff, 10, 100, Math.PI / 8, 0.3, 1);
-        light.position.set(0, 15, 0);
-        this.scene.add(light);
+        this.light = new THREE.SpotLight(0xffffff, 8, 80, Math.PI / 8, 0.8, 1);
+        this.light.position.set(0, 18, 0);
+        this.light.target.position.set(0, 7, 0);
+        this.scene.add(this.light);
+        // this.scene.add(this.light.target);
+
+        // // Helpers de debug pour visualiser la position et la direction de la spotlight.
+        // this.spotLightHelper = new THREE.SpotLightHelper(this.light, 0xff3b3b);
+        // this.scene.add(this.spotLightHelper);
+
+        // this.lightPositionHelper = new THREE.AxesHelper(0.8);
+        // this.lightPositionHelper.position.copy(this.light.position);
+        // this.scene.add(this.lightPositionHelper);
 
         for (const mesh of this.scene.children) {
             if (mesh.isMesh) {
@@ -185,6 +198,9 @@ class Viewer {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.addEventListener('change', () => {
+            if (this.spotLightHelper) {
+                this.spotLightHelper.update();
+            }
             this.render();
         });
         this.controls.minDistance = 10
