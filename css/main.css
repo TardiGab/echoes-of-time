@@ -1,26 +1,28 @@
-@keyframes spin{
-  0%{
+@keyframes spin {
+  0% {
     rotate: 0deg;
   }
-  100%{
+
+  100% {
     rotate: 360deg;
   }
 }
 
-body{
+body {
   margin: 0;
   overflow: hidden;
 
   position: relative;
+  font-family: 'Crimson Pro', serif;
 }
 
-body::before{
+body::before {
   content: "";
 
   display: block;
   width: 100vw;
   height: 100vh;
-  
+
   background: black;
   opacity: 0;
   pointer-events: none;
@@ -32,7 +34,7 @@ body::before{
   transition: all .32s ease;
 }
 
-body::after{
+body::after {
   content: "";
 
   display: block;
@@ -56,25 +58,36 @@ body::after{
 }
 
 body.loading::before,
-body.loading::after{
-  opacity: 1;  
+body.loading::after {
+  opacity: 1;
 }
 
 .canvas__wrapper {
-    display: block;
-    width: 100vw;
-    height: 100vh;
+  display: block;
+  width: 100vw;
+  height: 100vh;
 
-    position: relative;
+  position: relative;
 
-    overflow: hidden;
+  overflow: hidden;
 }
 
 .canvas {
-    width: 100% !important;
+  width: 100% !important;
 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.clues-container {
+  display: flex;
+  gap: .5rem;
+  position: absolute;
+  top: 3rem;
+  right: 3rem;
+  color: white;
+  z-index: 20;
+  font-size: 2rem;
 }
