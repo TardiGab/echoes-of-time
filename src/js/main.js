@@ -87,8 +87,8 @@ class Viewer {
         this.scene.add(...models.delorean.scene.children);
         this.scene.add(...models.timeMachine.scene.children);
 
-        const model = models.exterieur.scene;
-        model.rotation.y = THREE.MathUtils.degToRad(270);
+        const model = models.interieur.scene;
+        // model.rotation.z = THREE.MathUtils.degToRad(270);
 
         // Rajoute chaque animation stockée dans les modèles
         // pour les mettre dans notre objet "this.scene"
@@ -189,9 +189,9 @@ class Viewer {
         );
 
         // Recule notre camera pour qu'on puisse voir le centre de la scene
-        this.camera.position.x = 26;
-        this.camera.position.y = 7;
-        this.camera.position.z = -2;
+        this.camera.position.x = 2;
+        this.camera.position.y = 10;
+        this.camera.position.z = 0;
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -211,8 +211,8 @@ class Viewer {
         // Crée notre scene et y rajoute notre camera
         this.scene = new THREE.Scene();
         this.scene.add(this.camera);
-        this.camera.lookAt(0, 7, 0)
-        this.controls.target.set(0, 7, 0)
+        this.camera.lookAt(0, 10, 0)
+        this.controls.target.set(0, 10, 0)
 
         // Change une première fois la taille de notre canvas
         this.resize();
