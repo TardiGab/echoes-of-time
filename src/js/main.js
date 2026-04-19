@@ -6,7 +6,12 @@ const body = document.querySelector('body');
 
 // Chemins vers nos modèles
 const models = {
-    exterieur: '/models/FinalScene10.gltf'
+    exterieur: '/models/GO_SM_exterieur.gltf',
+    interieur: '/models/GO_SM_Scene.gltf',
+    jetonAntique: '/models/GO_DM_jeton-antique.gltf',
+    jeton80: '/models/GO_DM_jeton80.gltf',
+    delorean: '/models/GO_DM_delorean.gltf',
+    timeMachine: '/models/GO_DM_timemachine.gltf',
 };
 
 // LOADING
@@ -75,7 +80,15 @@ class Viewer {
     }
 
     populate() {
-        this.scene.add(...models.exterieur.scene.children);
+        // this.scene.add(...models.exterieur.scene.children);
+        this.scene.add(...models.interieur.scene.children);
+        this.scene.add(...models.jetonAntique.scene.children);
+        this.scene.add(...models.jeton80.scene.children);
+        this.scene.add(...models.delorean.scene.children);
+        this.scene.add(...models.timeMachine.scene.children);
+
+        const model = models.interieur.scene;
+        // model.rotation.z = THREE.MathUtils.degToRad(270);
 
         // Rajoute chaque animation stockée dans les modèles
         // pour les mettre dans notre objet "this.scene"
@@ -84,23 +97,8 @@ class Viewer {
                 this.scene.animations.push(animation);
             }
         }
-
-        const ambientLight = new THREE.AmbientLight('#9e9e9e', .2);
+        const ambientLight = new THREE.AmbientLight('white', 1);
         this.scene.add(ambientLight);
-
-        this.light = new THREE.SpotLight(0xffffff, 8, 80, Math.PI / 8, 0.8, 1);
-        this.light.position.set(0, 18, 0);
-        this.light.target.position.set(0, 7, 0);
-        this.scene.add(this.light);
-        // this.scene.add(this.light.target);
-
-        // // Helpers de debug pour visualiser la position et la direction de la spotlight.
-        // this.spotLightHelper = new THREE.SpotLightHelper(this.light, 0xff3b3b);
-        // this.scene.add(this.spotLightHelper);
-
-        // this.lightPositionHelper = new THREE.AxesHelper(0.8);
-        // this.lightPositionHelper.position.copy(this.light.position);
-        // this.scene.add(this.lightPositionHelper);
 
         for (const mesh of this.scene.children) {
             if (mesh.isMesh) {
@@ -191,9 +189,9 @@ class Viewer {
         );
 
         // Recule notre camera pour qu'on puisse voir le centre de la scene
-        this.camera.position.x = 26;
-        this.camera.position.y = 7;
-        this.camera.position.z = -2;
+        this.camera.position.x = 2;
+        this.camera.position.y = 10;
+        this.camera.position.z = 0;
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -203,18 +201,18 @@ class Viewer {
             }
             this.render();
         });
-        this.controls.minDistance = 10
-        this.controls.maxDistance = 26
-        this.controls.minPolarAngle = Math.PI / 3;
-        this.controls.maxPolarAngle = Math.PI / 2;
-        this.controls.minAzimuthAngle = 1;
-        this.controls.maxAzimuthAngle = 2;
+        // this.controls.minDistance = 10
+        // this.controls.maxDistance = 26
+        // this.controls.minPolarAngle = Math.PI / 3;
+        // this.controls.maxPolarAngle = Math.PI / 2;
+        // this.controls.minAzimuthAngle = 1;
+        // this.controls.maxAzimuthAngle = 2;
 
         // Crée notre scene et y rajoute notre camera
         this.scene = new THREE.Scene();
         this.scene.add(this.camera);
-        this.camera.lookAt(0, 7, 0)
-        this.controls.target.set(0, 7, 0)
+        this.camera.lookAt(0, 10, 0)
+        this.controls.target.set(0, 10, 0)
 
         // Change une première fois la taille de notre canvas
         this.resize();
