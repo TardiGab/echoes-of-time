@@ -1,3 +1,5 @@
+import gsap from 'https://esm.sh/gsap';
+
 /**
  * @license
  * Copyright 2010-2026 Three.js Authors
@@ -33934,6 +33936,262 @@ PropertyBinding.prototype.SetterByBindingTypeAndVersioning = [
 
 ];
 
+const _matrix = /*@__PURE__*/ new Matrix4();
+
+/**
+ * This class is designed to assist with raycasting. Raycasting is used for
+ * mouse picking (working out what objects in the 3d space the mouse is over)
+ * amongst other things.
+ */
+class Raycaster {
+
+	/**
+	 * Constructs a new raycaster.
+	 *
+	 * @param {Vector3} origin - The origin vector where the ray casts from.
+	 * @param {Vector3} direction - The (normalized) direction vector that gives direction to the ray.
+	 * @param {number} [near=0] - All results returned are further away than near. Near can't be negative.
+	 * @param {number} [far=Infinity] - All results returned are closer than far. Far can't be lower than near.
+	 */
+	constructor( origin, direction, near = 0, far = Infinity ) {
+
+		/**
+		 * The ray used for raycasting.
+		 *
+		 * @type {Ray}
+		 */
+		this.ray = new Ray( origin, direction );
+
+		/**
+		 * All results returned are further away than near. Near can't be negative.
+		 *
+		 * @type {number}
+		 * @default 0
+		 */
+		this.near = near;
+
+		/**
+		 * All results returned are closer than far. Far can't be lower than near.
+		 *
+		 * @type {number}
+		 * @default Infinity
+		 */
+		this.far = far;
+
+		/**
+		 * The camera to use when raycasting against view-dependent objects such as
+		 * billboarded objects like sprites. This field can be set manually or
+		 * is set when calling `setFromCamera()`.
+		 *
+		 * @type {?Camera}
+		 * @default null
+		 */
+		this.camera = null;
+
+		/**
+		 * Allows to selectively ignore 3D objects when performing intersection tests.
+		 * The following code example ensures that only 3D objects on layer `1` will be
+		 * honored by raycaster.
+		 * ```js
+		 * raycaster.layers.set( 1 );
+		 * object.layers.enable( 1 );
+		 * ```
+		 *
+		 * @type {Layers}
+		 */
+		this.layers = new Layers();
+
+
+		/**
+		 * A parameter object that configures the raycasting. It has the structure:
+		 *
+		 * ```
+		 * {
+		 * 	Mesh: {},
+		 * 	Line: { threshold: 1 },
+		 * 	LOD: {},
+		 * 	Points: { threshold: 1 },
+		 * 	Sprite: {}
+		 * }
+		 * ```
+		 * Where `threshold` is the precision of the raycaster when intersecting objects, in world units.
+		 *
+		 * @type {Object}
+		 */
+		this.params = {
+			Mesh: {},
+			Line: { threshold: 1 },
+			LOD: {},
+			Points: { threshold: 1 },
+			Sprite: {}
+		};
+
+	}
+
+	/**
+	 * Updates the ray with a new origin and direction by copying the values from the arguments.
+	 *
+	 * @param {Vector3} origin - The origin vector where the ray casts from.
+	 * @param {Vector3} direction - The (normalized) direction vector that gives direction to the ray.
+	 */
+	set( origin, direction ) {
+
+		// direction is assumed to be normalized (for accurate distance calculations)
+
+		this.ray.set( origin, direction );
+
+	}
+
+	/**
+	 * Uses the given coordinates and camera to compute a new origin and direction for the internal ray.
+	 *
+	 * @param {Vector2} coords - 2D coordinates of the mouse, in normalized device coordinates (NDC).
+	 * X and Y components should be between `-1` and `1`.
+	 * @param {Camera} camera - The camera from which the ray should originate.
+	 */
+	setFromCamera( coords, camera ) {
+
+		if ( camera.isPerspectiveCamera ) {
+
+			this.ray.origin.setFromMatrixPosition( camera.matrixWorld );
+			this.ray.direction.set( coords.x, coords.y, 0.5 ).unproject( camera ).sub( this.ray.origin ).normalize();
+			this.camera = camera;
+
+		} else if ( camera.isOrthographicCamera ) {
+
+			this.ray.origin.set( coords.x, coords.y, ( camera.near + camera.far ) / ( camera.near - camera.far ) ).unproject( camera ); // set origin in plane of camera
+			this.ray.direction.set( 0, 0, -1 ).transformDirection( camera.matrixWorld );
+			this.camera = camera;
+
+		} else {
+
+			error( 'Raycaster: Unsupported camera type: ' + camera.type );
+
+		}
+
+	}
+
+	/**
+	 * Uses the given WebXR controller to compute a new origin and direction for the internal ray.
+	 *
+	 * @param {WebXRController} controller - The controller to copy the position and direction from.
+	 * @return {Raycaster} A reference to this raycaster.
+	 */
+	setFromXRController( controller ) {
+
+		_matrix.identity().extractRotation( controller.matrixWorld );
+
+		this.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+		this.ray.direction.set( 0, 0, -1 ).applyMatrix4( _matrix );
+
+		return this;
+
+	}
+
+	/**
+	 * The intersection point of a raycaster intersection test.
+	 * @typedef {Object} Raycaster~Intersection
+	 * @property {number} distance - The distance from the ray's origin to the intersection point.
+	 * @property {number} distanceToRay -  Some 3D objects e.g. {@link Points} provide the distance of the
+	 * intersection to the nearest point on the ray. For other objects it will be `undefined`.
+	 * @property {Vector3} point - The intersection point, in world coordinates.
+	 * @property {Object} face - The face that has been intersected.
+	 * @property {number} faceIndex - The face index.
+	 * @property {Object3D} object - The 3D object that has been intersected.
+	 * @property {Vector2} uv - U,V coordinates at point of intersection.
+	 * @property {Vector2} uv1 - Second set of U,V coordinates at point of intersection.
+	 * @property {Vector3} normal - Interpolated normal vector at point of intersection.
+	 * @property {number} instanceId - The index number of the instance where the ray
+	 * intersects the {@link InstancedMesh}.
+	 */
+
+	/**
+	 * Checks all intersection between the ray and the object with or without the
+	 * descendants. Intersections are returned sorted by distance, closest first.
+	 *
+	 * `Raycaster` delegates to the `raycast()` method of the passed 3D object, when
+	 * evaluating whether the ray intersects the object or not. This allows meshes to respond
+	 * differently to ray casting than lines or points.
+	 *
+	 * Note that for meshes, faces must be pointed towards the origin of the ray in order
+	 * to be detected; intersections of the ray passing through the back of a face will not
+	 * be detected. To raycast against both faces of an object, you'll want to set  {@link Material#side}
+	 * to `THREE.DoubleSide`.
+	 *
+	 * @param {Object3D} object - The 3D object to check for intersection with the ray.
+	 * @param {boolean} [recursive=true] - If set to `true`, it also checks all descendants.
+	 * Otherwise it only checks intersection with the object.
+	 * @param {Array<Raycaster~Intersection>} [intersects=[]] The target array that holds the result of the method.
+	 * @return {Array<Raycaster~Intersection>} An array holding the intersection points.
+	 */
+	intersectObject( object, recursive = true, intersects = [] ) {
+
+		intersect( object, this, intersects, recursive );
+
+		intersects.sort( ascSort );
+
+		return intersects;
+
+	}
+
+	/**
+	 * Checks all intersection between the ray and the objects with or without
+	 * the descendants. Intersections are returned sorted by distance, closest first.
+	 *
+	 * @param {Array<Object3D>} objects - The 3D objects to check for intersection with the ray.
+	 * @param {boolean} [recursive=true] - If set to `true`, it also checks all descendants.
+	 * Otherwise it only checks intersection with the object.
+	 * @param {Array<Raycaster~Intersection>} [intersects=[]] The target array that holds the result of the method.
+	 * @return {Array<Raycaster~Intersection>} An array holding the intersection points.
+	 */
+	intersectObjects( objects, recursive = true, intersects = [] ) {
+
+		for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+			intersect( objects[ i ], this, intersects, recursive );
+
+		}
+
+		intersects.sort( ascSort );
+
+		return intersects;
+
+	}
+
+}
+
+function ascSort( a, b ) {
+
+	return a.distance - b.distance;
+
+}
+
+function intersect( object, raycaster, intersects, recursive ) {
+
+	let propagate = true;
+
+	if ( object.layers.test( raycaster.layers ) ) {
+
+		const result = object.raycast( raycaster, intersects );
+
+		if ( result === false ) propagate = false;
+
+	}
+
+	if ( propagate === true && recursive === true ) {
+
+		const children = object.children;
+
+		for ( let i = 0, l = children.length; i < l; i ++ ) {
+
+			intersect( children[ i ], raycaster, intersects, true );
+
+		}
+
+	}
+
+}
+
 /**
  * This class can be used to represent points in 3D space as
  * [Spherical coordinates](https://en.wikipedia.org/wiki/Spherical_coordinate_system).
@@ -60655,7 +60913,23 @@ class Viewer {
     constructor(options) {
         this.canvas = options.canvas;
 
+        // souris
+        this.raycaster = new Raycaster();
+        this.mouse = new Vector2();
+
+        //anim jetons 
+        this.jeton1BaseScale = null;
+        this.jeton2BaseScale = null;
+        this.jeton3BaseScale = null;
+        this.jeton4BaseScale = null;
+
+        this.jeton1Hovered = false;
+        this.jeton2Hovered = false;
+        this.jeton3Hovered = false;
+        this.jeton4Hovered = false;
+
         this.setRenderer(options);
+        this.mouseEvents();
     }
 
 
@@ -60684,6 +60958,84 @@ class Viewer {
         });
     }
 
+    mouseEvents() {
+        this.canvas.addEventListener('pointermove', (e) => this.hoverJetons(e));
+        this.canvas.addEventListener('click', (e) => this.canvaInteract(e));
+    }
+
+    pointerPos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    getInteractions() {
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+
+        const roots = [];
+        if (this.jeton1) roots.push({ kind: "jeton1", root: this.jeton1 });
+        if (!roots.length) return null;
+
+        const hits = this.raycaster.intersectObjects(
+            roots.map((r) => r.root),
+            true
+        );
+        if (!hits.length) return null;
+
+        let o = hits[0].object;
+        while (o) {
+            for (const r of roots) {
+                if (o === r.root) return { kind: r.kind, hit: hits[0] };
+            }
+            o = o.parent;
+        }
+        return null;
+    }
+
+    hoverJetons(e) {
+        this.pointerPos(e);
+
+        if (!this.jeton1) return;
+
+        const interact = this.getInteractions();
+        const hoverJeton1 = interact?.kind === "jeton1";
+
+        if (this.jeton1 && this.jeton1BaseScale) {
+            if (hoverJeton1 && !this.jeton1Hovered) {
+                this.jeton1Hovered = true;
+                gsap.killTweensOf(this.jeton1.scale);
+                gsap.to(this.jeton1.scale, {
+                    duration: 0.2,
+                    x: this.jeton1BaseScale.x * 1.5,
+                    y: this.jeton1BaseScale.y * 1.5,
+                    z: this.jeton1BaseScale.z * 1.5,
+                    ease: "power2.out",
+                });
+            }
+
+            if (!hoverJeton1 && this.jeton1Hovered) {
+                this.jeton1Hovered = false;
+                gsap.killTweensOf(this.jeton1.scale);
+                gsap.to(this.jeton1.scale, {
+                    duration: 0.2,
+                    x: this.jeton1BaseScale.x,
+                    y: this.jeton1BaseScale.y,
+                    z: this.jeton1BaseScale.z,
+                    ease: "power2.out",
+                });
+            }
+        }
+
+        document.body.style.cursor = hoverJeton1 ? "pointer" : "";
+    }
+
+    canvaInteract(e) {
+        this.pointerPos(e);
+
+        const interact = this.getInteractions();
+        if (!interact) return;
+    }
+
     populate() {
         // this.scene.add(...models.exterieur.scene.children);
         this.scene.add(...models.interieur.scene.children);
@@ -60691,6 +61043,11 @@ class Viewer {
         this.scene.add(...models.jeton80.scene.children);
         this.scene.add(...models.delorean.scene.children);
         this.scene.add(...models.timeMachine.scene.children);
+
+        this.jeton1 = this.scene.getObjectByName('Jeton_SM005');
+        console.log("jeton1 trouvé :", this.jeton1);
+        console.log("jeton1 parent :", this.jeton1?.parent);
+        this.jeton1BaseScale = this.jeton1.scale.clone();
 
         models.interieur.scene;
         // model.rotation.z = THREE.MathUtils.degToRad(270);
@@ -60797,6 +61154,8 @@ class Viewer {
         this.camera.position.x = 2;
         this.camera.position.y = 10;
         this.camera.position.z = 0;
+
+
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);

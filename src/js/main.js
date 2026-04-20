@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import gsap from "https://esm.sh/gsap";
 
 const body = document.querySelector('body');
 
@@ -47,7 +48,23 @@ class Viewer {
     constructor(options) {
         this.canvas = options.canvas;
 
+        // souris
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+
+        //anim jetons 
+        this.jeton1BaseScale = null
+        this.jeton2BaseScale = null
+        this.jeton3BaseScale = null
+        this.jeton4BaseScale = null
+
+        this.jeton1Hovered = false;
+        this.jeton2Hovered = false;
+        this.jeton3Hovered = false;
+        this.jeton4Hovered = false;
+
         this.setRenderer(options);
+        this.mouseEvents();
     }
 
 
@@ -79,6 +96,84 @@ class Viewer {
         });
     }
 
+    mouseEvents() {
+        this.canvas.addEventListener('pointermove', (e) => this.hoverJetons(e));
+        this.canvas.addEventListener('click', (e) => this.canvaInteract(e));
+    }
+
+    pointerPos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    getInteractions() {
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+
+        const roots = [];
+        if (this.jeton1) roots.push({ kind: "jeton1", root: this.jeton1 });
+        if (!roots.length) return null;
+
+        const hits = this.raycaster.intersectObjects(
+            roots.map((r) => r.root),
+            true
+        );
+        if (!hits.length) return null;
+
+        let o = hits[0].object;
+        while (o) {
+            for (const r of roots) {
+                if (o === r.root) return { kind: r.kind, hit: hits[0] };
+            }
+            o = o.parent;
+        }
+        return null;
+    }
+
+    hoverJetons(e) {
+        this.pointerPos(e);
+
+        if (!this.jeton1) return;
+
+        const interact = this.getInteractions();
+        const hoverJeton1 = interact?.kind === "jeton1";
+
+        if (this.jeton1 && this.jeton1BaseScale) {
+            if (hoverJeton1 && !this.jeton1Hovered) {
+                this.jeton1Hovered = true;
+                gsap.killTweensOf(this.jeton1.scale);
+                gsap.to(this.jeton1.scale, {
+                    duration: 0.2,
+                    x: this.jeton1BaseScale.x * 1.5,
+                    y: this.jeton1BaseScale.y * 1.5,
+                    z: this.jeton1BaseScale.z * 1.5,
+                    ease: "power2.out",
+                });
+            }
+
+            if (!hoverJeton1 && this.jeton1Hovered) {
+                this.jeton1Hovered = false;
+                gsap.killTweensOf(this.jeton1.scale);
+                gsap.to(this.jeton1.scale, {
+                    duration: 0.2,
+                    x: this.jeton1BaseScale.x,
+                    y: this.jeton1BaseScale.y,
+                    z: this.jeton1BaseScale.z,
+                    ease: "power2.out",
+                });
+            }
+        }
+
+        document.body.style.cursor = hoverJeton1 ? "pointer" : "";
+    }
+
+    canvaInteract(e) {
+        this.pointerPos(e);
+
+        const interact = this.getInteractions();
+        if (!interact) return;
+    }
+
     populate() {
         // this.scene.add(...models.exterieur.scene.children);
         this.scene.add(...models.interieur.scene.children);
@@ -86,6 +181,11 @@ class Viewer {
         this.scene.add(...models.jeton80.scene.children);
         this.scene.add(...models.delorean.scene.children);
         this.scene.add(...models.timeMachine.scene.children);
+
+        this.jeton1 = this.scene.getObjectByName('Jeton_SM005');
+        console.log("jeton1 trouvé :", this.jeton1);
+        console.log("jeton1 parent :", this.jeton1?.parent);
+        this.jeton1BaseScale = this.jeton1.scale.clone();
 
         const model = models.interieur.scene;
         // model.rotation.z = THREE.MathUtils.degToRad(270);
@@ -192,6 +292,8 @@ class Viewer {
         this.camera.position.x = 2;
         this.camera.position.y = 10;
         this.camera.position.z = 0;
+
+
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);

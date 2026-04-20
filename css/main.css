@@ -115,3 +115,47 @@ body.loading::after {
 .progression-coin__completed {
   background: white;
 }
+
+.begin {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 160px;
+}
+
+.begin__logo {
+  width: 50%;
+  height: auto;
+}
+
+.begin__start {
+  position: relative;
+  cursor: pointer;
+  color: white;
+  font-family: 'Crimson Pro', serif;
+  font-size: 32px;
+  background: none;
+  border: none;
+  border-top: 2px solid white;
+  border-bottom: 2px solid white;
+  padding: 16px 32px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.begin__start span {
+  text-decoration: underline;
+}
+
+.disappear {
+  opacity: 0;
+  pointer-events: none;
+}
