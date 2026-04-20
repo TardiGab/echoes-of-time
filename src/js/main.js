@@ -29,6 +29,14 @@ for (const key in models) {
 // Enlève le loader
 body.classList.remove('loading');
 
+const begin = document.querySelector('.begin');
+setTimeout(() => {
+    begin.classList.add('disappear');
+    begin.addEventListener('transitionend', () => {
+        begin.style.display = 'none';
+    }, { once: true });
+}, 3000);
+
 // SETTINGS
 const settings = {
     wrapper: document.querySelector(".js-canvas-wrapper"),
@@ -135,7 +143,7 @@ class Viewer {
     hoverJetons(e) {
         this.pointerPos(e);
 
-        if (!this.jeton1 && !this.jeton2 && this.jeton3) return;
+        if (!this.jeton1 && !this.jeton2 && !this.jeton3) return;
 
         const interact = this.getInteractions();
         const hoverJeton1 = interact?.kind === "jeton1";
@@ -231,6 +239,8 @@ class Viewer {
     canvaInteract(e) {
         this.pointerPos(e);
 
+        if (this.gameOver) return;
+
         const interact = this.getInteractions();
         if (!interact) return;
 
@@ -250,6 +260,8 @@ class Viewer {
             this.switchCamera(this.cam1);
             document.querySelector('.progression-coin__3').classList.add('progression-coin__completed');
             this.countClues();
+            document.querySelector('.success').classList.add('success__visible');
+            this.gameOver = true;
         }
     }
 
@@ -295,7 +307,6 @@ class Viewer {
 
         this.jeton3 = this.scene.getObjectByName('Jeton_SM003');
         this.jeton3BaseScale = this.jeton3.scale.clone();
-
 
 
         const model = models.interieur.scene;
@@ -408,6 +419,8 @@ class Viewer {
 
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        // this.controls.enableRotate = false;
+        // this.controls.enablePan = false;
         this.controls.addEventListener('change', () => {
             if (this.spotLightHelper) {
                 this.spotLightHelper.update();

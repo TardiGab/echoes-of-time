@@ -129,6 +129,7 @@ body.loading::after {
   justify-content: center;
   align-items: center;
   gap: 160px;
+  transition: all .8s ease-in;
 }
 
 .begin__logo {
@@ -136,26 +137,36 @@ body.loading::after {
   height: auto;
 }
 
-.begin__start {
-  position: relative;
-  cursor: pointer;
+.begin__text {
   color: white;
-  font-family: 'Crimson Pro', serif;
   font-size: 32px;
-  background: none;
-  border: none;
-  border-top: 2px solid white;
-  border-bottom: 2px solid white;
-  padding: 16px 32px;
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-
-.begin__start span {
-  text-decoration: underline;
 }
 
 .disappear {
   opacity: 0;
   pointer-events: none;
+  z-index: -1;
+}
+
+.success {
+  position: absolute;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 64px 0;
+  width: 100%;
+  font-size: 32px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  opacity: 0;
+  transition: all .3s ease-in;
+}
+
+.success__visible {
+  display: flex;
+  opacity: 1;
 }
