@@ -56,15 +56,15 @@ class Viewer {
         this.jeton1BaseScale = null
         this.jeton2BaseScale = null
         this.jeton3BaseScale = null
-        this.jeton4BaseScale = null
 
         this.jeton1Hovered = false;
         this.jeton2Hovered = false;
         this.jeton3Hovered = false;
-        this.jeton4Hovered = false;
 
         this.setRenderer(options);
         this.mouseEvents();
+
+        document.querySelector('.clues__number--count').textContent = '0';
     }
 
 
@@ -112,6 +112,8 @@ class Viewer {
 
         const roots = [];
         if (this.jeton1) roots.push({ kind: "jeton1", root: this.jeton1 });
+        if (this.jeton2) roots.push({ kind: "jeton2", root: this.jeton2 });
+        if (this.jeton3) roots.push({ kind: "jeton3", root: this.jeton3 });
         if (!roots.length) return null;
 
         const hits = this.raycaster.intersectObjects(
@@ -133,10 +135,12 @@ class Viewer {
     hoverJetons(e) {
         this.pointerPos(e);
 
-        if (!this.jeton1) return;
+        if (!this.jeton1 && !this.jeton2 && this.jeton3) return;
 
         const interact = this.getInteractions();
         const hoverJeton1 = interact?.kind === "jeton1";
+        const hoverJeton2 = interact?.kind === "jeton2";
+        const hoverJeton3 = interact?.kind === "jeton3";
 
         if (this.jeton1 && this.jeton1BaseScale) {
             if (hoverJeton1 && !this.jeton1Hovered) {
@@ -164,7 +168,64 @@ class Viewer {
             }
         }
 
-        document.body.style.cursor = hoverJeton1 ? "pointer" : "";
+        if (this.jeton2 && this.jeton2BaseScale) {
+            if (hoverJeton2 && !this.jeton2Hovered) {
+                this.jeton2Hovered = true;
+                gsap.killTweensOf(this.jeton2.scale);
+                gsap.to(this.jeton2.scale, {
+                    duration: 0.2,
+                    x: this.jeton2BaseScale.x * 1.5,
+                    y: this.jeton2BaseScale.y * 1.5,
+                    z: this.jeton2BaseScale.z * 1.5,
+                    ease: "power2.out",
+                });
+            }
+
+            if (!hoverJeton2 && this.jeton2Hovered) {
+                this.jeton2Hovered = false;
+                gsap.killTweensOf(this.jeton2.scale);
+                gsap.to(this.jeton2.scale, {
+                    duration: 0.2,
+                    x: this.jeton2BaseScale.x,
+                    y: this.jeton2BaseScale.y,
+                    z: this.jeton2BaseScale.z,
+                    ease: "power2.out",
+                });
+            }
+        }
+
+        if (this.jeton3 && this.jeton3BaseScale) {
+            if (hoverJeton3 && !this.jeton3Hovered) {
+                this.jeton3Hovered = true;
+                gsap.killTweensOf(this.jeton3.scale);
+                gsap.to(this.jeton3.scale, {
+                    duration: 0.2,
+                    x: this.jeton3BaseScale.x * 1.5,
+                    y: this.jeton3BaseScale.y * 1.5,
+                    z: this.jeton3BaseScale.z * 1.5,
+                    ease: "power2.out",
+                });
+            }
+
+            if (!hoverJeton3 && this.jeton3Hovered) {
+                this.jeton3Hovered = false;
+                gsap.killTweensOf(this.jeton3.scale);
+                gsap.to(this.jeton3.scale, {
+                    duration: 0.2,
+                    x: this.jeton3BaseScale.x,
+                    y: this.jeton3BaseScale.y,
+                    z: this.jeton3BaseScale.z,
+                    ease: "power2.out",
+                });
+            }
+        }
+
+        document.body.style.cursor = hoverJeton1 || hoverJeton2 || hoverJeton3 ? "pointer" : "";
+    }
+
+    countClues() {
+        const count = document.querySelector('.clues__number--count');
+        count.textContent = (parseInt(count.textContent) || 0) + 1;
     }
 
     canvaInteract(e) {
@@ -172,9 +233,53 @@ class Viewer {
 
         const interact = this.getInteractions();
         if (!interact) return;
+
+        if (interact.kind === 'jeton1') {
+            this.switchCamera(this.cam2);
+            document.querySelector('.progression-coin__1').classList.add('progression-coin__completed');
+            this.countClues();
+        }
+
+        if (interact.kind === 'jeton2') {
+            this.switchCamera(this.cam3);
+            document.querySelector('.progression-coin__2').classList.add('progression-coin__completed');
+            this.countClues();
+        }
+
+        if (interact.kind === 'jeton3') {
+            this.switchCamera(this.cam1);
+            document.querySelector('.progression-coin__3').classList.add('progression-coin__completed');
+            this.countClues();
+        }
+    }
+
+    switchCamera(targetCam) {
+        gsap.to(this.camera.position, {
+            duration: 1,
+            x: targetCam.position.x,
+            y: targetCam.position.y,
+            z: targetCam.position.z,
+            ease: "power2.inOut",
+            onUpdate: () => this.render()
+        });
+
+        gsap.to(this.camera.quaternion, {
+            duration: 1,
+            x: targetCam.quaternion.x,
+            y: targetCam.quaternion.y,
+            z: targetCam.quaternion.z,
+            w: targetCam.quaternion.w,
+            ease: "power2.inOut",
+            onUpdate: () => this.render()
+        });
     }
 
     populate() {
+
+        this.cam1 = models.interieur.scene.getObjectByName("Machine_Cam");
+        this.cam2 = models.interieur.scene.getObjectByName("Cam_Antique_Cam");
+        this.cam3 = models.interieur.scene.getObjectByName("Cam_1980_Cam");
+        this.cam4 = models.interieur.scene.getObjectByName("Cam_futur_Cam");
         // this.scene.add(...models.exterieur.scene.children);
         this.scene.add(...models.interieur.scene.children);
         this.scene.add(...models.jetonAntique.scene.children);
@@ -183,9 +288,15 @@ class Viewer {
         this.scene.add(...models.timeMachine.scene.children);
 
         this.jeton1 = this.scene.getObjectByName('Jeton_SM005');
-        console.log("jeton1 trouvé :", this.jeton1);
-        console.log("jeton1 parent :", this.jeton1?.parent);
         this.jeton1BaseScale = this.jeton1.scale.clone();
+
+        this.jeton2 = this.scene.getObjectByName('Jeton_SM004');
+        this.jeton2BaseScale = this.jeton2.scale.clone();
+
+        this.jeton3 = this.scene.getObjectByName('Jeton_SM003');
+        this.jeton3BaseScale = this.jeton3.scale.clone();
+
+
 
         const model = models.interieur.scene;
         // model.rotation.z = THREE.MathUtils.degToRad(270);
