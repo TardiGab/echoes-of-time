@@ -60904,7 +60904,7 @@ setTimeout(() => {
     begin.addEventListener('transitionend', () => {
         begin.style.display = 'none';
     }, { once: true });
-}, 3000);
+}, 2500);
 
 // SETTINGS
 const settings = {
@@ -61282,19 +61282,19 @@ class Viewer {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         // this.controls.enableRotate = false;
-        // this.controls.enablePan = false;
+        this.controls.enablePan = false;
         this.controls.addEventListener('change', () => {
             if (this.spotLightHelper) {
                 this.spotLightHelper.update();
             }
             this.render();
         });
-        // this.controls.minDistance = 10
-        // this.controls.maxDistance = 26
-        // this.controls.minPolarAngle = Math.PI / 3;
-        // this.controls.maxPolarAngle = Math.PI / 2;
-        // this.controls.minAzimuthAngle = 1;
-        // this.controls.maxAzimuthAngle = 2;
+        // this.controls.minDistance = 2
+        this.controls.maxDistance = 3;
+        this.controls.minPolarAngle = Math.PI / 3;
+        this.controls.maxPolarAngle = Math.PI / 2;
+        this.controls.minAzimuthAngle = .5;
+        this.controls.maxAzimuthAngle = 2.5;
 
         // Crée notre scene et y rajoute notre camera
         this.scene = new Scene();
