@@ -7,12 +7,12 @@ const body = document.querySelector('body');
 
 // Chemins vers nos modèles
 const models = {
-    exterieur: '/models/GO_SM_exterieur.gltf',
-    interieur: '/models/GO_SM_Scene.gltf',
-    jetonAntique: '/models/GO_DM_jeton-antique.gltf',
-    jeton80: '/models/GO_DM_jeton80.gltf',
-    delorean: '/models/GO_DM_delorean.gltf',
-    timeMachine: '/models/GO_DM_timemachine.gltf',
+    exterieur: './models/GO_SM_exterieur.gltf',
+    interieur: './models/GO_SM_Scene.gltf',
+    jetonAntique: './models/GO_DM_jeton-antique.gltf',
+    jeton80: './models/GO_DM_jeton80.gltf',
+    delorean: './models/GO_DM_delorean.gltf',
+    timeMachine: './models/GO_DM_Timemachine.gltf',
 };
 
 // LOADING
